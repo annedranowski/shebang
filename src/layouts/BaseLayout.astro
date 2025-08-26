@@ -1,8 +1,10 @@
 ---
-const { title = "Anne’s DS/QR Notes", description = "Daily bites in data science & quantitative research" } = Astro.props;
+const { title = "Anne's Shebang", description = "Oversimplified developer notes and musings" } =
+Astro.props;
 ---
 <!doctype html>
 <html lang="en" data-theme="dark">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -10,15 +12,124 @@ const { title = "Anne’s DS/QR Notes", description = "Daily bites in data scien
   <meta name="description" content={description} />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
   <link rel="stylesheet" href="/styles.css">
+  <!-- Google Fonts: preconnects -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- One request for all three families -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playwrite+US+Modern:wght@100..400&family=Jost:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
   <script is:inline>
-    (function() {
-      const saved = localStorage.getItem('theme');
-      const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
-      const theme = saved || (prefersLight ? 'light' : 'dark');
-      document.documentElement.setAttribute('data-theme', theme);
+    (function () {
+      const STORAGE_KEY = 'theme';
+
+      // 1) Prevent transition flicker during initial set
+      const restore = (() => {
+        const style = document.createElement('style');
+        style.textContent = `
+          * { transition: none !important }
+          html { visibility: hidden }
+          html.theme-ready { visibility: visible }
+        `;
+        document.head.appendChild(style);
+        return () => {
+          // allow next frame for theme to apply, then show
+          requestAnimationFrame(() => {
+            document.documentElement.classList.add('theme-ready');
+            requestAnimationFrame(() => style.remove());
+          });
+        };
+      })();
+
+      // 2) If user has a saved choice, use it and exit
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved === 'light' || saved === 'dark') {
+        document.documentElement.setAttribute('data-theme', saved);
+        restore();
+        return;
+      }
+
+      // 3) Synchronous hour heuristic to avoid flash (7–19 = light, else dark)
+      const hour = new Date().getHours();
+      const fallbackTheme = (hour >= 7 && hour < 19) ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', fallbackTheme);
+      restore();
+
+      // 4) Optional refinement: compute sunrise/sunset w/ geolocation (async)
+      //    If the refined result differs from heuristic, update once.
+      function toRad(d) { return d * Math.PI / 180; }
+      function toDeg(r) { return r * 180 / Math.PI; }
+      function dayOfYear(d) {
+        const start = new Date(d.getFullYear(), 0, 0);
+        return Math.floor((d - start) / 86400000);
+      }
+      function solarDeclination(N) {
+        return 0.006918 - 0.399912 * Math.cos(2 * Math.PI * N / 365)
+          + 0.070257 * Math.sin(2 * Math.PI * N / 365)
+          - 0.006758 * Math.cos(4 * Math.PI * N / 365)
+          + 0.000907 * Math.sin(4 * Math.PI * N / 365)
+          - 0.002697 * Math.cos(6 * Math.PI * N / 365)
+          + 0.00148 * Math.sin(6 * Math.PI * N / 365);
+      }
+      function hourAngle(latRad, declRad, solarZenithDeg = 90.833) {
+        const cosH = (Math.cos(toRad(solarZenithDeg)) - Math.sin(latRad) * Math.sin(declRad)) /
+          (Math.cos(latRad) * Math.cos(declRad));
+        if (cosH <= -1) return Math.PI; // sun never sets
+        if (cosH >= 1) return 0;       // sun never rises
+        return Math.acos(cosH);
+      }
+      function minutesToLocalTime(minutes) {
+        const d = new Date();
+        d.setHours(0, 0, 0, 0);
+        d.setMinutes(minutes);
+        return d;
+      }
+      function calcSunTimes(lat, lon, date = new Date()) {
+        const N = dayOfYear(date);
+        const decl = solarDeclination(N);
+        const latR = toRad(lat);
+
+        const B = 2 * Math.PI * (N - 81) / 364;
+        const EoT = 9.87 * Math.sin(2 * B) - 7.53 * Math.cos(B) - 1.5 * Math.sin(B);
+
+        const tz = -date.getTimezoneOffset() / 60;
+        const LSTM = 15 * tz;
+
+        const TC = 4 * (lon - LSTM) + EoT; // minutes
+        const solarNoon = 720 - TC;
+
+        const H = hourAngle(latR, decl);
+        const deltaMins = toDeg(H) * 4;
+
+        return {
+          sunrise: minutesToLocalTime(solarNoon - deltaMins),
+          sunset: minutesToLocalTime(solarNoon + deltaMins),
+        };
+      }
+
+      function refineTheme(lat, lon) {
+        const now = new Date();
+        const { sunrise, sunset } = calcSunTimes(lat, lon, now);
+        const buffer = 20 * 60 * 1000; // 20 min
+        const after = now >= new Date(sunrise.getTime() + buffer);
+        const before = now <= new Date(sunset.getTime() - buffer);
+        const refined = (after && before) ? 'light' : 'dark';
+        if (refined !== fallbackTheme) {
+          document.documentElement.setAttribute('data-theme', refined);
+        }
+      }
+
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => refineTheme(pos.coords.latitude, pos.coords.longitude),
+          () => { }, // ignore errors; heuristic stands
+          { timeout: 1200, maximumAge: 12 * 3600_000 }
+        );
+      }
     })();
   </script>
 </head>
+
 <body>
   <header class="container header">
     <div class="brand"><a href="/about">Anne Dranowski</a>'s Shebang</div>
@@ -37,19 +148,33 @@ const { title = "Anne’s DS/QR Notes", description = "Daily bites in data scien
     </div>
   </main>
   <footer class="container small footer">
-    <div>© {new Date().getFullYear()} Anne Dranowski</div>
+    <div>© {new Date().getFullYear()} Anne Dranowski with Claude and ChatGPT</div>
   </footer>
   <script is:inline>
-    const btn = document.getElementById('theme-toggle');
-    function apply(theme) {
-      document.documentElement.setAttribute('data-theme', theme);
-      localStorage.setItem('theme', theme);
-      btn.setAttribute('aria-pressed', theme === 'dark');
-    }
-    btn?.addEventListener('click', () => {
-      const current = document.documentElement.getAttribute('data-theme') || 'dark';
-      apply(current === 'dark' ? 'light' : 'dark');
-    });
+    (function () {
+      const STORAGE_KEY = 'theme';
+      const btn = document.getElementById('theme-toggle');
+      if (!btn) return;
+
+      function currentTheme() {
+        const attr = document.documentElement.getAttribute('data-theme');
+        return (attr === 'light' || attr === 'dark') ? attr : 'dark';
+      }
+      function apply(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem(STORAGE_KEY, theme);
+        btn.setAttribute('aria-pressed', String(theme === 'dark'));
+      }
+
+      // Initialize button state to match current theme
+      btn.setAttribute('aria-pressed', String(currentTheme() === 'dark'));
+
+      btn.addEventListener('click', () => {
+        const next = currentTheme() === 'dark' ? 'light' : 'dark';
+        apply(next);
+      });
+    })();
   </script>
 </body>
+
 </html>

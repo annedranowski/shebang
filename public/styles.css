@@ -1,63 +1,54 @@
 /* -------------------------------------------------
    Fonts (swap to self-host later)
 -------------------------------------------------- */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+/* @import url('https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,600&family=IBM+Plex+Mono:wght@400;500&display=swap'); */
+
 
 /* -------------------------------------------------
    Base tokens (will be overridden per theme)
 -------------------------------------------------- */
+/* Base (dark) */
 :root {
   /* Layout scales */
-  --content-max: clamp(720px, 88vw, 960px);
+  --content-max: clamp(600px, 78vw, 860px);
   --content-padding: clamp(16px, 2.5vw, 24px);
 
   /* Typography */
-  --font-sans: "Inter", "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
-  --font-serif: "Newsreader", Georgia, "Times New Roman", serif;
+  --font-sans: "Jost", "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-serif: "Playwrite US Modern", cursive; /* new script / signature font */
 
-  /* Color tokens (defaults = dark; overridden below) */
-  --bg: #0b1220;           /* deep midnight navy */
-  --fg: #f5f5f5;           /* text */
-  --muted: #9a9a9a;        /* secondary text */
-  --accent: #ee87d9;       /* lavender links */
-  --card: #121826;         /* card bg */
-  --border: #f4d8ed;         /* lipstick red rules */
-  --header-bg: rgba(11, 18, 32, 0.7); /* translucent header */
+
+  /* Colors (default = dark) */
+  --bg: #4f6d84;
+  --fg: #f5f5f5;
+  --muted: #d0cfcf;
+  --accent: #f0c6e7;
+  /* --card: #15456a; */
+  --card: #88687f13;
+  --border: #c8adc3; 
+  /* --header-bg: rgba(11, 18, 32, 0.7); */
 
   /* Extras */
   --code-bg: rgba(255, 255, 255, 0.04);
-  --focus: var(--accent);
+  --focus: #fab2ec35;
 
-  color-scheme: dark light; /* helps form controls, etc. */
+  color-scheme: dark light;
 }
 
-/* Light theme override */
+/* Light theme override (manual or JS-applied) */
 html[data-theme="light"] {
-  --bg: #faf9f6;           /* ivory */
-  --fg: #0a0a0a;           /* near-black text */
-  --muted: #6e6e6e;
-  --accent: #5e4eca;       /* muted lavender */
-  --card: hsla(32, 29%, 91%, 0.848);
-  --border: #bdb6eb;         /* lipstick red */
-  --header-bg: rgba(250, 249, 246, 0.8);
+  --bg: #d6effd;
+  --fg: #0a0a0a;
+  --muted: #808080;
+  --accent: #5e4eca;
+  --card:#bdb6eb0f; 
+  /* --card: hsla(32, 29%, 91%, 0.848); */
+  --border: #bdb6eb;
+  /* --header-bg: rgba(250, 249, 246, 0.8); */
   --code-bg: rgba(0, 0, 0, 0.04);
   color-scheme: light dark;
-}
-
-/* Optional: respect system preference on first paint */
-@media (prefers-color-scheme: light) {
-  html:not([data-theme]) {
-    --bg: #faf9f6;
-    --fg: #0a0a0a;
-    --muted: #6e6e6e;
-    --accent: #6a5acd;
-    --card: #ffffff;
-    --border: #b60000;
-    --header-bg: rgba(250, 249, 246, 0.8);
-    --code-bg: rgba(0, 0, 0, 0.04);
-    color-scheme: light dark;
-  }
 }
 
 /* -------------------------------------------------
@@ -79,6 +70,7 @@ body {
   flex-direction: column;
   font-family: var(--font-sans);
   line-height: 1.6;
+  /* font-weight: 00; */
 }
 
 /* Typography */
@@ -88,18 +80,18 @@ h1, h2, h3 {
   letter-spacing: 0.01em;
   margin: 0 0 .5rem;
 }
-h1 { font-size: 2rem; line-height: 1.06; margin-top: 1.25rem; }
-h2 { font-size: 1.25rem; line-height: 1.12; margin-top: 1.5rem; padding-bottom: .25rem; border: none; }
+h1 { font-size: 1.5rem; line-height: 1.06; margin-top: 1.25rem; }
+h2 { font-size: 1.25rem; line-height: 1.12; margin-top: 1.5rem; padding-bottom: .25rem; border: none; font-family: var(--font-sans); font-weight: 300;}
 
 code, pre, kbd {
   font-family: var(--font-mono);
-  font-size: 0.95em;
-  background: var(--code-bg);
-  border: 1px solid var(--border);
-  border-radius: 6px;
+  font-size: .95em;
+  background: none;
+  /* border: 1px solid var(--border); */
+  /* border-radius: 6px; */
 }
-code, kbd { padding: .1rem .3rem; }
-pre { padding: .75rem 1rem; overflow: auto; }
+code, kbd { padding: 0; }
+pre { padding: 0; overflow: auto; }
 
 /* Links */
 a {
@@ -156,7 +148,7 @@ header {
   position: sticky;
   top: 0;
   /* border-bottom: 1px solid var(--border); */
-  background: var(--header-bg);
+  /* background: var(--header-bg); */
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   z-index: 10;
@@ -166,11 +158,13 @@ header {
   display: flex;
   align-items: center;
   gap: clamp(1rem, 6vw, 5rem); /* responsive breathing room */
+  /* font-weight: 300; */
+  /* font-size: 2rem; */
 }
 
 /* Brand + tagline */
 .brand { font-weight: 700; letter-spacing: 0.2px; font-size: 1.1rem; }
-.tagline { margin-left: 0.4rem; font-size: 0.95rem; color: var(--muted); }
+.tagline { margin-left: 0.5rem; font-size: 0.95rem; color: var(--muted); } /* is it being used? */
 
 /* Nav */
 .nav {
@@ -178,6 +172,7 @@ header {
   display: flex;
   align-items: center;
   gap: 1.25rem;
+  font-size: 1.5rem;
 }
 
 /* Sticky footer push */
@@ -193,10 +188,10 @@ main.container { flex: 1; }
   margin-top: 1rem;
 }
 .card {
-  background: var(--card);
-  /* border: 1px solid var(--border); */
-  border: none;
-  border-radius: 14px;
+  /* background: var(--card); */
+  border: 1px solid var(--card);
+  /* border: none; */
+  border-radius: 1epx;
   padding: 1rem;
 }
 
@@ -209,10 +204,11 @@ main.container { flex: 1; }
   height: 38px;
   font-size: 1.5rem;
   line-height: 1;
-  border-radius: 10px;
+  /* border-radius: 10px; */
   /* border: 1px solid var(--border); */
   border: none;
-  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  background: none;
   /* color: var(--fg); */
   cursor: pointer;
   transition: transform .1s ease;

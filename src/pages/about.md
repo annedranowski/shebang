@@ -3,10 +3,8 @@ layout: ../layouts/BaseLayout.astro
 title: About 
 ---
 
-# Hi, I’m Anne
+# Hi, I’m Anne 🕵🏻‍♀️
 
-Short intro, links, and what this site is about. View source!
+I am an experienced data scientist and research mathematician fascinated by the challenge of shaping messy data into coherent stories and useful tools.
 
-Short intro, links, and what this site is about. View source! Short intro, links, and what this site is about. View source! Short intro, links, and what this site is about. View source!
-
-Short intro, links, and what this site is about. View source!
+With a background in representation theory (pattern recognition), I enjoy collaborating end-to-end on multi-layered and complex problems.

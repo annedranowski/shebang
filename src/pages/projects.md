@@ -5,10 +5,16 @@ title: Projects
 
 # Projects
 
-Brief blurb about what you’re building, then sections: Brief blurb about what you’re building, then sections: Brief blurb about what you’re building, then sections:
+Brief blurb about what you’re building, then sections: 
 
-## Portfolio Transformer for FX Hedging
-One‑liner + bullets, links, screenshots.
+## Portfolio Transformer
+
+We implemented a Time2Vec + Transformer forecasting model to generate FX hedge strategies
 
 ## Knot Recognition (CNN/ViT)
-What it does, data, results, repo link.
+
+We built Vanilla, CNN, and ViT pipelines to count knot crossings
+
+## Car Consumption and Taxation
+
+We experimented on IRS + household survey data to measure behavioral response to tax regimes and recommend policy changes
