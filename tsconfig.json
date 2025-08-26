@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "moduleResolution": "bundler",
+    "module": "esnext",
+    "target": "ESNext",
+    "jsx": "preserve",
+    "strict": true,
+    "baseUrl": "."
+  }
+}

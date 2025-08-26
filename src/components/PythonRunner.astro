@@ -1,0 +1,148 @@
+---
+const { code } = Astro.props;
+---
+
+<div class="python-runner">
+  <div class="toolbar">
+    <span>Python</span>
+    <button class="copy" type="button">Copy</button>
+  </div>
+
+  <pre class="codewrap">
+    <code class="language-python code">{code}</code>
+  </pre>
+
+  <div class="actions">
+    <button class="run" type="button">▶ Run</button>
+  </div>
+
+  <pre class="output" aria-live="polite"></pre>
+</div>
+
+<script type="module">
+  // One-time globals to avoid double-loading across multiple components
+  window.__pyRunner = window.__pyRunner || {
+    prismLoaded: false,
+    pyodidePromise: null,
+    initDone: false,
+  };
+
+  async function loadPrism() {
+    if (window.__pyRunner.prismLoaded) return;
+    // CSS
+    await new Promise((res, rej) => {
+      const link = document.createElement("link");
+      link.rel = "stylesheet";
+      // link.href = "https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism-tomorrow.min.css";
+      link.href = "https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism-one-dark.css";
+      link.onload = res; link.onerror = rej; document.head.appendChild(link);
+    });
+    // JS modules
+    await import("https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-core.min.js");
+    await import("https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-python.min.js");
+    window.__pyRunner.prismLoaded = true;
+  }
+
+  async function getPyodide() {
+    if (!window.__pyRunner.pyodidePromise) {
+      const { loadPyodide } = await import("https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.mjs");
+      window.__pyRunner.pyodidePromise = loadPyodide();
+    }
+    return window.__pyRunner.pyodidePromise;
+  }
+
+  function wire(root) {
+    if (!root || root.dataset.bound) return;
+    root.dataset.bound = "1";
+
+    const codeEl = root.querySelector(".code");
+    const outEl  = root.querySelector(".output");
+    const runBtn = root.querySelector(".run");
+    const copyBtn = root.querySelector(".copy");
+
+    // Highlight
+    loadPrism().then(() => { /* @ts-ignore */ window.Prism?.highlightElement(codeEl); });
+
+    // Copy
+    copyBtn.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(codeEl.textContent || "");
+        copyBtn.textContent = "Copied!";
+        setTimeout(() => (copyBtn.textContent = "Copy"), 1200);
+      } catch {
+        copyBtn.textContent = "Copy failed";
+        setTimeout(() => (copyBtn.textContent = "Copy"), 1200);
+      }
+    });
+
+    // Run (capture stdout/stderr)
+    runBtn.addEventListener("click", async () => {
+      runBtn.disabled = true;
+      outEl.textContent = "…running…";
+      try {
+        const pyodide = await getPyodide();
+        const userCode = codeEl.textContent || "";
+        const wrapped = `
+import sys, io, traceback
+_buf = io.StringIO()
+_stdout, _stderr = sys.stdout, sys.stderr
+sys.stdout = _buf
+sys.stderr = _buf
+try:
+${userCode.split("\\n").map(l => "    " + l).join("\\n")}
+except Exception:
+    traceback.print_exc()
+finally:
+    sys.stdout, sys.stderr = _stdout, _stderr
+_buf.getvalue()
+        `.trim();
+
+        const result = await pyodide.runPythonAsync(wrapped);
+        outEl.textContent = result || "";
+      } catch (err) {
+        outEl.textContent = "Error: " + (err?.message ?? String(err));
+        console.error(err);
+      } finally {
+        runBtn.disabled = false;
+      }
+    });
+  }
+
+  // Initial scan + observe future inserts (works with multiple snippets)
+  function scan() {
+    document.querySelectorAll(".python-runner").forEach(wire);
+  }
+  scan();
+  if (!window.__pyRunner.initDone) {
+    const mo = new MutationObserver(scan);
+    mo.observe(document.body, { childList: true, subtree: true });
+    window.__pyRunner.initDone = true;
+  }
+</script>
+
+<style>
+.python-runner { margin: 1rem 0; }
+.toolbar {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: .85rem; color: var(--muted); margin-bottom: .25rem;
+}
+.codewrap, .output {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: .75rem 1rem;
+  overflow-x: auto;
+}
+.actions { margin: .5rem 0; }
+.run, .copy {
+  padding: .35rem .7rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--fg);
+  cursor: pointer;
+}
+.run:hover, .copy:hover { background: var(--accent); color: var(--bg); }
+.run:disabled { opacity: .6; cursor: progress; }
+.output { min-height: 1.75rem; white-space: pre-wrap; }
+</style>

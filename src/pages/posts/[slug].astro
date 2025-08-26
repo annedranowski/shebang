@@ -1,0 +1,35 @@
+---
+import Base from "../../layouts/BaseLayout.astro";
+import { getCollection, getEntryBySlug } from "astro:content";
+
+// Build pages for each post
+export async function getStaticPaths() {
+  const posts = await getCollection("posts");
+  return posts.map((p) => ({ params: { slug: p.slug } }));
+}
+
+const { slug } = Astro.params;
+const entry = await getEntryBySlug("posts", slug);
+if (!entry) throw new Error(`Post not found: ${slug}`);
+
+const { Content } = await entry.render();           // <-- render() gives Content (and headings)
+const { title, pubDate, updatedDate } = entry.data; // <-- front-matter comes from entry.data
+
+const fmtLong = new Intl.DateTimeFormat("en-US", { year: "numeric", month: "long", day: "2-digit" });
+---
+
+<Base title={`${title}`}>
+  <article>
+    <h1>{title}</h1>
+    <p class="meta">
+      written on {fmtLong.format(pubDate)}
+      {updatedDate ? <>, edited on {fmtLong.format(updatedDate)}</> : null}
+    </p>
+    <Content />
+  </article>
+</Base>
+
+<style>
+  .meta { color: var(--muted); margin-top: -0.25rem; }
+  article :global(h2) { margin-top: 1.25rem; }
+</style>

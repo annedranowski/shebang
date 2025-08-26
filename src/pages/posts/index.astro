@@ -1,0 +1,72 @@
+---
+import Base from "../../layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+
+const posts = (await getCollection("posts", ({ data }) => !data.draft))
+.sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime());
+
+const fmt = new Intl.DateTimeFormat("en-US", { month: "short", day: "2-digit", year: "numeric" });
+---
+
+<Base title="Blog">
+<h1>Blog</h1>
+<div class="blog-list">
+    <ul class="post-list">
+        {posts.map((p) => (
+        <li class="post-item">
+            <span class="post-date">{fmt.format(p.data.pubDate)}</span>
+            <div class="post-main">
+                <a class="post-title" href={`/posts/${p.slug}/`}>{p.data.title}</a>
+                {p.data.subtitle && <span class="post-subtitle"> — {p.data.subtitle}</span>}
+            </div>
+        </li>
+        ))}
+    </ul>
+</div>
+</Base>
+
+<style>
+    .post-list {
+        max-width: 100%;
+        list-style: none;
+        padding: 0;
+        margin: 1rem 0 2rem;
+        display: grid;
+        gap: .5rem;
+    }
+
+    .post-item {
+        display: grid;
+        grid-template-columns: 160px 1fr;
+        align-items: baseline;
+        gap: .75rem;
+    }
+
+    .post-date {
+        color: var(--muted);
+    }
+
+    .post-main {
+        white-space: normal;
+    }
+
+    /* keep title + subtitle together in right column */
+    .post-title {
+        font-weight: 600;
+    }
+
+    .post-subtitle {
+        color: var(--muted);
+    }
+
+    @media (max-width: 640px) {
+        .post-item {
+            grid-template-columns: 1fr;
+        }
+
+        .post-date {
+            order: 2;
+        }
+    }
+
+</style>
