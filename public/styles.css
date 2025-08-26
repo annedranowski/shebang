@@ -90,8 +90,8 @@ code, pre, kbd {
   /* border: 1px solid var(--border); */
   /* border-radius: 6px; */
 }
-code, kbd { padding: 0; }
-pre { padding: 0; overflow: auto; }
+code, kbd { margin: 0; padding: 0; }
+pre { margin: 0; padding: 0; overflow: auto; }
 
 /* Links */
 a {
