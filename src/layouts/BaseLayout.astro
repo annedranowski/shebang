@@ -10,6 +10,16 @@ Astro.props;
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>{title}</title>
 
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-C0CBPR3W6J"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-C0CBPR3W6J');
+  </script>
+
   <meta name="description" content={description} />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
   <link rel="stylesheet" href="/styles.css">
