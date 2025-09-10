@@ -1,16 +1,19 @@
 ---
+// Props passed in 
 const { code } = Astro.props;
 ---
 
 <div class="python-runner">
+  <!-- Display blocks -->
   <div class="toolbar">
     <span>Python</span>
     <button class="copy" type="button">Copy</button>
   </div>
 
-  <pre class="codewrap">
-    <code class="language-python code">{code}</code>
-  </pre>
+  <pre class="codewrap"><code class="language-python code">{code}</code></pre>
+
+  <!-- Hidden storage for original code -->
+  <textarea class="original-code hidden">{code}</textarea>
 
   <div class="actions">
     <button class="run" type="button">▶ Run</button>
@@ -29,15 +32,18 @@ const { code } = Astro.props;
 
   async function loadPrism() {
     if (window.__pyRunner.prismLoaded) return;
-    // CSS
+    
+    // Load CSS
     await new Promise((res, rej) => {
       const link = document.createElement("link");
       link.rel = "stylesheet";
-      // link.href = "https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism-tomorrow.min.css";
       link.href = "https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism-one-dark.css";
-      link.onload = res; link.onerror = rej; document.head.appendChild(link);
+      link.onload = res; 
+      link.onerror = rej; 
+      document.head.appendChild(link);
     });
-    // JS modules
+    
+    // Load JS modules
     await import("https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-core.min.js");
     await import("https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-python.min.js");
     window.__pyRunner.prismLoaded = true;
@@ -56,17 +62,22 @@ const { code } = Astro.props;
     root.dataset.bound = "1";
 
     const codeEl = root.querySelector(".code");
-    const outEl  = root.querySelector(".output");
+    const outEl = root.querySelector(".output");
     const runBtn = root.querySelector(".run");
     const copyBtn = root.querySelector(".copy");
+    const originalCodeEl = root.querySelector(".original-code");
 
-    // Highlight
-    loadPrism().then(() => { /* @ts-ignore */ window.Prism?.highlightElement(codeEl); });
+    // Apply syntax highlighting
+    loadPrism().then(() => {
+      if (window.Prism) {
+        window.Prism.highlightElement(codeEl);
+      }
+    });
 
-    // Copy
+    // Copy functionality
     copyBtn.addEventListener("click", async () => {
       try {
-        await navigator.clipboard.writeText(codeEl.textContent || "");
+        await navigator.clipboard.writeText(originalCodeEl.value || "");
         copyBtn.textContent = "Copied!";
         setTimeout(() => (copyBtn.textContent = "Copy"), 1200);
       } catch {
@@ -75,76 +86,138 @@ const { code } = Astro.props;
       }
     });
 
-    // Run (capture stdout/stderr)
+    // Run functionality
     runBtn.addEventListener("click", async () => {
       runBtn.disabled = true;
-      outEl.textContent = "…running…";
+      outEl.textContent = "Running...";
+      
       try {
         const pyodide = await getPyodide();
-        const userCode = codeEl.textContent || "";
-        const wrapped = `
+        const userCode = originalCodeEl.value || "";
+        
+        // Wrap user code in try/catch for execution
+        const wrappedCode = `
 import sys, io, traceback
-_buf = io.StringIO()
-_stdout, _stderr = sys.stdout, sys.stderr
-sys.stdout = _buf
-sys.stderr = _buf
+_stdout_buffer = io.StringIO()
+_stderr_buffer = io.StringIO()
+_original_stdout, _original_stderr = sys.stdout, sys.stderr
+
 try:
-${userCode.split("\\n").map(l => "    " + l).join("\\n")}
+    sys.stdout = _stdout_buffer
+    sys.stderr = _stderr_buffer
+${userCode.split("\\n").map(line => "    " + line).join("\\n")}
 except Exception:
     traceback.print_exc()
 finally:
-    sys.stdout, sys.stderr = _stdout, _stderr
-_buf.getvalue()
+    sys.stdout, sys.stderr = _original_stdout, _original_stderr
+
+# Get both stdout and stderr
+_output = _stdout_buffer.getvalue()
+_errors = _stderr_buffer.getvalue()
+_output + _errors if _errors else _output
         `.trim();
 
-        const result = await pyodide.runPythonAsync(wrapped);
-        outEl.textContent = result || "";
+        const result = await pyodide.runPythonAsync(wrappedCode);
+        outEl.textContent = result || "(no output)";
+        
       } catch (err) {
-        outEl.textContent = "Error: " + (err?.message ?? String(err));
-        console.error(err);
+        outEl.textContent = "Error: " + (err?.message || String(err));
+        console.error("Python execution error:", err);
       } finally {
         runBtn.disabled = false;
       }
     });
   }
 
-  // Initial scan + observe future inserts (works with multiple snippets)
-  function scan() {
+  // Scan for components and wire them up
+  function scanAndWire() {
     document.querySelectorAll(".python-runner").forEach(wire);
   }
-  scan();
+
+  // Initial scan
+  scanAndWire();
+  
+  // Set up mutation observer for dynamically added components
   if (!window.__pyRunner.initDone) {
-    const mo = new MutationObserver(scan);
-    mo.observe(document.body, { childList: true, subtree: true });
+    const observer = new MutationObserver(scanAndWire);
+    observer.observe(document.body, { childList: true, subtree: true });
     window.__pyRunner.initDone = true;
   }
 </script>
 
 <style>
-.python-runner { margin: 1rem 0; }
-.toolbar {
-  display: flex; justify-content: space-between; align-items: center;
-  font-size: .95rem; color: var(--muted); margin-bottom: .25rem;
-}
-.codewrap, .output {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 11px;
-  padding-top: .75rem;
-  padding-left: .75rem;
-  padding-bottom: .75rem;
-  overflow-x: auto;
-}
-.actions { margin: .5rem 0; }
-.run, .copy {
-  padding: .35rem .7rem;
-  border: 1px solid var(--border);
-  border-radius: 9px;
-  background: var(--card);
-  color: var(--fg);
-  cursor: pointer;
-}
-.run:hover, .copy:hover { background: var(--accent); color: var(--bg); }
-.run:disabled { opacity: .6; cursor: progress; }
-.output { min-height: 1.75rem; white-space: pre-wrap; }
+  .python-runner {
+    margin: 1rem 0;
+    font-family: var(--font-mono, 'Monaco', 'Menlo', 'Ubuntu Mono', monospace);
+  }
+
+  .toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    color: var(--muted, #666);
+    margin-bottom: 0.5rem;
+  }
+
+  .codewrap {
+    background: var(--card, #f8f8f8);
+    border: 1px solid var(--border, #e1e1e1);
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 0;
+    overflow-x: auto;
+  }
+
+  .code {
+    font-family: inherit;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    margin: 0;
+    padding: 0;
+    background: none;
+    border: none;
+  }
+
+  .actions {
+    margin: 0.75rem 0;
+  }
+
+  .run, .copy {
+    padding: 0.4rem 0.8rem;
+    border: 1px solid var(--border, #e1e1e1);
+    border-radius: 6px;
+    background: var(--card, #f8f8f8);
+    color: var(--fg, #333);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .run:hover, .copy:hover {
+    background: var(--accent, #007acc);
+    color: white;
+  }
+
+  .run:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .output {
+    background: var(--card, #f8f8f8);
+    border: 1px solid var(--border, #e1e1e1);
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 0;
+    min-height: 2rem;
+    white-space: pre-wrap;
+    font-family: inherit;
+    font-size: 0.9rem;
+    line-height: 1.4;
+  }
+
+  .hidden {
+    display: none;
+  }
 </style>

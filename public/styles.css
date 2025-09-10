@@ -90,8 +90,8 @@ code, pre, kbd {
   /* border: 1px solid var(--border); */
   /* border-radius: 6px; */
 }
-code, kbd { margin: 0; padding: 0; }
-pre { margin: 0; padding: 0; overflow: auto; }
+/* code, kbd { margin: 0; padding: 0; } */
+pre { margin: 0; padding: 0; }
 
 /* Links */
 a {
@@ -105,6 +105,50 @@ a:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
   border-radius: 4px;
+}
+
+.swap {
+  display: inline-block;
+  position: relative;
+  text-decoration: underline;
+  cursor: help;
+  width: 15ch; /* enough to fit the longer phrase */
+}
+.swap .front,
+.swap .back {
+  display: inline-block;
+  width: 100%;         /* take full container width */
+  text-align: left;    /* or center if you like */
+}
+.swap .back { display: none; }
+.swap:hover .front { display: none; }
+.swap:hover .back { display: inline-block; }
+
+/* Tooltip box */
+.tooltip .tooltiptext {
+  visibility: hidden;
+  background-color: var(--fg);   /* use foreground for bg */
+  color: var(--bg);              /* invert colors for text */
+  text-align: center;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+
+  position: absolute;
+  z-index: 1;
+  bottom: 125%; /* place above */
+  left: 50%;
+  transform: translateX(-50%);
+
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  white-space: nowrap;
+}
+
+/* Show tooltip on hover */
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1;
 }
 
 /* Section rules */
