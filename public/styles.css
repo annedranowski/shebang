@@ -65,12 +65,12 @@ html, body {
 }
 
 body {
-  min-height: 100svh;
+  /* min-height: 100svh; */
   display: flex;
   flex-direction: column;
   font-family: var(--font-sans);
-  line-height: 1.6;
-  /* font-weight: 00; */
+  line-height: 1.7;
+  font-weight: 400;
 }
 
 /* Typography */
@@ -81,7 +81,21 @@ h1, h2, h3 {
   margin: 0 0 .5rem;
 }
 h1 { font-size: 1.5rem; line-height: 1.06; margin-top: 1.25rem; }
-h2 { font-size: 1.25rem; line-height: 1.12; margin-top: 1.5rem; padding-bottom: .25rem; border: none; font-family: var(--font-sans); font-weight: 300;}
+
+h2 {
+  font-size: 1.25rem;
+  margin-top: 1.5rem;      /* keeps space above the heading */
+  margin-bottom: 0rem;  /* reduces space below the heading */
+  padding-bottom: 0;       /* avoid extra gap */
+  border: none;
+  font-family: var(--font-sans);
+  font-weight: 400;
+  color: var(--accent);
+}
+p {
+  margin-top: 0;       /* remove extra space at top */
+  margin-bottom: 1rem; /* keep consistent spacing between paragraphs */
+}
 
 code, pre, kbd {
   font-family: var(--font-mono);
@@ -167,48 +181,52 @@ hr {
 /* -------------------------------------------------
    Layout
 -------------------------------------------------- */
+
+/* Generic content wrapper */
 .container {
+  width: min(var(--content-max), 100vw);
   margin: 0 auto;
   padding: 1.25rem var(--content-padding);
 }
 
-.content,
-.header { /* single source of truth for width */
-  width: min(var(--content-max), calc(100vw - 2 * var(--content-padding)));
-  margin: 0 auto;
-}
-
-.header .brand {
-  font-family: var(--font-serif);
-  font-weight: 600;
-  letter-spacing: .01em;
-  font-size: 1.5rem
-}
-
-.content > .wide { max-width: none; }
-
-/* Header (sticky) */
+/* Header (sticky, spans full width) */
 header {
   position: sticky;
   top: 0;
-  /* border-bottom: 1px solid var(--border); */
-  /* background: var(--header-bg); */
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   z-index: 10;
 }
 
+/* Header inner content uses the same container rules */
 .header {
   display: flex;
   align-items: center;
-  gap: clamp(1rem, 6vw, 5rem); /* responsive breathing room */
-  /* font-weight: 300; */
-  /* font-size: 2rem; */
+  gap: clamp(1rem, 6vw, 5rem);
+  width: min(var(--content-max), 100vw);
+  margin: 0 auto;
+  padding: 1.25rem var(--content-padding);
 }
 
 /* Brand + tagline */
-.brand { font-weight: 700; letter-spacing: 0.2px; font-size: 1.1rem; }
-.tagline { margin-left: 0.5rem; font-size: 0.95rem; color: var(--muted); } /* is it being used? */
+.header .brand {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  letter-spacing: .01em;
+  font-size: 1.5rem;
+}
+
+.brand {
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  font-size: 1.1rem;
+}
+
+.tagline {
+  margin-left: 0.5rem;
+  font-size: 0.95rem;
+  color: var(--muted);
+}
 
 /* Nav */
 .nav {
@@ -220,9 +238,19 @@ header {
 }
 
 /* Sticky footer push */
-main.container { flex: 1; }
+main.container {
+  flex: 1;
+}
 
-/* .footer { border-top: 1px solid var(--border); } */
+/* Footer */
+footer {
+  /* border-top: 1px dashed var(--border); */
+  padding: 1rem var(--content-padding);
+  text-align: center;  /* centers copyright */
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
 
 /* Cards */
 .cards {
