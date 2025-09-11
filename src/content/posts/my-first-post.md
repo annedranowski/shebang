@@ -1,6 +1,6 @@
 ---
 title: Return to the internet
-subtitle: A mathematician-turned-QR/DS/MLP capturing TILs.
+subtitle: My first post
 pubDate: 2025-08-25
 # updatedDate: 2025-08-05
 tags: [cats,dogs] # [types, engineering, pragmatism]

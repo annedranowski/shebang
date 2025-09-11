@@ -162,7 +162,7 @@ hr {
 
 /* Utility */
 .small { font-size: 0.9rem; color: var(--muted); }
-.post-title:hover { text-decoration: underline; }
+
 
 /* -------------------------------------------------
    Layout
@@ -222,7 +222,7 @@ header {
 /* Sticky footer push */
 main.container { flex: 1; }
 
-.footer { border-top: 1px solid var(--border); }
+/* .footer { border-top: 1px solid var(--border); } */
 
 /* Cards */
 .cards {
@@ -251,7 +251,8 @@ main.container { flex: 1; }
   /* border-radius: 10px; */
   /* border: 1px solid var(--border); */
   border: none;
-  border-bottom: 1px solid var(--border);
+  /* border-bottom: 1px solid var(--border); */
+  text-shadow: 2px 2px 4px var(--border); /* soft shadow */
   background: none;
   /* color: var(--fg); */
   cursor: pointer;
