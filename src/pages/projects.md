@@ -5,7 +5,7 @@ title: Projects
 
 # Projects
 
-Brief blurb about what you’re building, then sections: 
+Over the years I have had the good fortune to work on some pretty interesting stuff. Here's a few of my recent projects.
 
 ## Portfolio Transformer
 

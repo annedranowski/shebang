@@ -1,7 +1,6 @@
 ---
 layout: ../layouts/BaseLayout.astro
-title: About 
-aliases: ["/about"]
+title: About
 ---
 
 # Hi, I’m Anne 🕵🏻‍♀️
